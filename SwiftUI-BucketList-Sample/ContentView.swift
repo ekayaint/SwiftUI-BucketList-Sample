@@ -7,6 +7,12 @@
 
 import SwiftUI
 
+struct User: Identifiable {
+    let id = UUID()
+    let firstName: String
+    let lastName: String
+}
+
 struct ContentView: View {
     var body: some View {
         VStack {
