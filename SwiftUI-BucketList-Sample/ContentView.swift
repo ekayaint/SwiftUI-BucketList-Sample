@@ -18,21 +18,25 @@ struct User: Identifiable, Comparable {
     }
 }
 
-struct Location: Identifiable {
+/**struct Location: Identifiable {
     let id = UUID()
     let name: String
     let coordinate: CLLocationCoordinate2D
-}
+}*/
 
 struct ContentView: View {
     @State private var isUnlocked = false
-    @State private var mapRegion = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 51.5, longitude: -0.12), span: MKCoordinateSpan(latitudeDelta: 0.2, longitudeDelta: 0.2))
-    let locations = [
+    @State private var mapRegion = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: 50, longitude: 0), span: MKCoordinateSpan(latitudeDelta: 25, longitudeDelta: 25))
+    @State private var locations = [Location]()
+    
+    @State private var selectedPlace: Location?
+    
+    /**let locations = [
         Location(name: "Buckingham Palace", coordinate: CLLocationCoordinate2D(latitude: 51.501, longitude: -0.141)),
         Location(name: "Tower of London", coordinate: CLLocationCoordinate2D(latitude: 51.508, longitude: -0.076))
     
     ]
-    
+    */
     let users = [
         User(firstName: "n1", lastName: "s1"),
         User(firstName: "n3", lastName: "s3"),
@@ -95,14 +99,66 @@ struct ContentView: View {
             .navigationTitle("London Explorer")
         } //: Nav
         */
-        VStack {
+      /**  VStack {
             if isUnlocked {
                 Text("Unlocked")
             } else {
                 Text("Locked")
             }
         } //: VStack
-        .onAppear(perform: authenticate)
+        .onAppear(perform: authenticate)*/
+        ZStack{
+            Map(coordinateRegion: $mapRegion, annotationItems: locations) { location in
+                MapAnnotation(coordinate: location.coordinate) {
+                    VStack {
+                        Image(systemName: "star.circle")
+                            .resizable()
+                            .foregroundStyle(.red)
+                            .frame(width: 44, height: 44)
+                            .background(.white)
+                            .clipShape(Circle())
+                        
+                        Text(location.name)
+                            .fixedSize()
+                    } //: VStack
+                    .onTapGesture {
+                        selectedPlace = location
+                    }
+                }
+            }
+                .ignoresSafeArea()
+            Circle()
+                .fill(.blue)
+                .opacity(0.3)
+                .frame(width: 32, height: 32)
+            
+            VStack {
+                Spacer()
+                HStack {
+                    Spacer()
+                    Button {
+                        let newLocation = Location(id: UUID(), name: "New Location", description: "", latitude: mapRegion.center.latitude, longtitude: mapRegion.center.longitude)
+                        locations.append(newLocation)
+                    } label: {
+                        Image(systemName: "plus")
+                    } //: Button
+                    .padding()
+                    .background(.black.opacity(0.75))
+                    .foregroundStyle(.white)
+                    .font(.title)
+                    .clipShape(Circle())
+                    .padding(.trailing)
+                    
+                } //: HStack
+            } //: VStack
+        } //: ZStack
+        .sheet(item: $selectedPlace) { place in
+            EditView(location: place) { newLocation in
+                if let index = locations.firstIndex(of: place) {
+                    locations[index] = newLocation
+                }
+            }
+        }
     }
 }
 
